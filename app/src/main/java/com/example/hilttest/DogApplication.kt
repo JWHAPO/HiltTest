@@ -8,5 +8,17 @@ import dagger.hilt.android.HiltAndroidApp
  * Description:
  */
 @HiltAndroidApp
-class DogApplication: Application() {
+class DogApplication : Application() {
+
+    init {
+        instance = this
+    }
+
+    companion object {
+        private var instance: DogApplication? = null
+
+        fun getContext(): DogApplication {
+            return instance as DogApplication
+        }
+    }
 }

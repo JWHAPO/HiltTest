@@ -1,15 +1,14 @@
 package com.example.hilttest.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hilttest.common.BaseViewModel
+import com.example.hilttest.common.SingleLiveEvent
+import com.example.hilttest.common.resCollect
 import com.example.hilttest.network.DogResponse
-import com.example.hilttest.network.NetworkResult
-import com.example.hilttest.repo.Repository
+import com.example.hilttest.repo.DogRepositoryImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,16 +18,26 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: Repository,
-    application: Application
-) : AndroidViewModel(application) {
+    private val repository: DogRepositoryImpl
+) : BaseViewModel() {
 
-    private val _response: MutableLiveData<NetworkResult<DogResponse>> = MutableLiveData()
-    val response: LiveData<NetworkResult<DogResponse>> = _response
+    private val _response: MutableLiveData<DogResponse> = MutableLiveData()
+    val response: LiveData<DogResponse> = _response
+
+    val isLoading = SingleLiveEvent<Boolean>()
+    val isError = SingleLiveEvent<Unit>()
 
     fun fetchDogResponse() = viewModelScope.launch {
-        repository.getDog().collect { values ->
-            _response.value = values
-        }
+        isLoading.value = true
+        repository.getDog().resCollect(
+            onSuccess = {
+                _response.value = it
+                isLoading.value = false
+            },
+            onError = {
+                isLoading.value = false
+                isError.call()
+            }
+        )
     }
 }

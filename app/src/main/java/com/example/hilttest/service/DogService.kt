@@ -11,5 +11,5 @@ import retrofit2.http.GET
  */
 interface DogService {
     @GET(Constants.RANDOM_URL)
-    suspend fun getDog(): Response<DogResponse>
+    suspend fun getDog(): DogResponse
 }
